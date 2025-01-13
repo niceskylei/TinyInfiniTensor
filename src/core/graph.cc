@@ -153,6 +153,23 @@ namespace infini
         // HINT: 获取分配好的内存指针后，可以调用 tensor 的 setDataBlob 函数给 tensor 绑定内存
         // =================================== 作业 ===================================
 
+        // Iterate over all tensors in the graph and allocate memory for each tensor.
+        for (const auto &tensor : tensors)
+        {
+            // Get the size of the tensor in bytes (size = number of elements * element size).
+            size_t tensorSize = tensor->getBytes();
+
+            // Use the allocator to allocate memory for this tensor.
+            // The allocator will return the offset (start address) of the allocated memory block.
+            size_t offset = allocator.alloc(tensorSize);
+
+            // Create a BlobObj object to manage the allocated memory.
+            // Since Blob is a Ref<BlobObj>, we use `make_ref` to create a reference-counted instance.
+            Blob blob = make_ref<BlobObj>(runtime, reinterpret_cast<void *>(offset));
+
+            // Bind the allocated memory (Blob) to the tensor using the setDataBlob function.
+            tensor->setDataBlob(blob);
+        }
         allocator.info();
     }
 
